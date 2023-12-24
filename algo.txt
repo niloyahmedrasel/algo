@@ -1,0 +1,445 @@
+Binary Search Tree (All in One)
+
+#include<bits/stdc++.h>
+using namespace std;
+struct Node {
+int data;
+Node* left;
+Node* right;
+};
+Node* createNewNode(Node* root, int data) {
+Node* newNode = new Node(); // heap
+newNode->data = data;
+newNode->left = NULL;
+newNode->right = NULL;
+return newNode;
+}
+Node* insert(Node* root, int data) {
+if (root == NULL) {
+root = createNewNode(root, data);
+return root;
+}
+else if (data <= root->data) root->left = insert(root->left, data);
+else root->right = insert(root->right, data);
+return root;
+}
+bool search(Node* root, int key) {
+if (root == NULL) return false;
+else if (root->data == key) return true;
+else if (key < root->data) return search(root->left,key);
+else return search(root->right,key);
+}
+int findMin(Node* root) {
+if (root == NULL) {
+cout << "Tree does not exist!" << endl;
+return -1;
+}
+// iterative
+//while (root->left != NULL) {
+// root = root->left;
+
+//}
+//return root->data;
+// recursive
+if (root->left == NULL)
+return root->data;
+return findMin(root->left);
+}
+void preorder(Node* root) {
+if (root == NULL) return;
+cout << root->data << " ";
+preorder(root->left);
+preorder(root->right);
+}
+void inorder(Node* root) {
+if (root == NULL) return;
+inorder(root->left);
+cout << root->data << " ";
+inorder(root->right);
+}
+void postorder(Node* root) {
+if (root == NULL) return;
+postorder(root->left);
+postorder(root->right);
+cout << root->data << " ";
+}
+int main() {
+Node* root = NULL;
+root = insert(root, 15);
+root = insert(root, 20);
+root = insert(root, 25);
+root = insert(root, 10);
+int key;
+cout << "Please enter a value to search: ";
+cin >> key;
+if (search(root, key)) cout << "Found\n";
+else cout << "Not found\n";
+cout << "Min Value: " << findMin(root) << endl;
+
+inorder(root);
+return 0;
+}
+
+
+
+
+
+
+Minimum Cost Spanning Tree (Prim’s)
+
+#include<bits/stdc++.h>
+using namespace std;
+#define vertices 7
+int graph[vertices][vertices];
+void addEdge(int source, int destination, int weight) {
+graph[source][destination] = weight;
+graph[destination][source] = weight;
+}
+int main() {
+addEdge(0, 1, 28);
+addEdge(1, 2, 16);
+addEdge(2, 3, 12);
+addEdge(3, 4, 22);
+addEdge(4, 5, 25);
+addEdge(0, 5, 10);
+addEdge(4, 6, 24);
+addEdge(1, 6, 14);
+addEdge(3, 6, 18);
+int numOfEdges = 0;
+int selected[vertices];
+memset(selected, false, sizeof(selected));
+selected[0] = true;
+int x, y, cost = 0;
+while (numOfEdges < vertices-1) {
+int minn = INT_MAX; // 10
+x = 0;
+y = 0;
+for (int i=0; i<vertices; i++) {
+
+if (selected[i]) {
+for (int j=0; j<vertices; j++) {
+if (!selected[j] && graph[i][j]) {
+if (graph[i][j]<minn) {
+minn = graph[i][j];
+x = i;
+y = j;
+}
+}
+}
+}
+}
+cout << x << " -> " << y << ": " << graph[x][y] << endl;
+cost+=graph[x][y];
+selected[y] = true;
+numOfEdges++;
+}
+cout << "Cost of minimum spanning tree: " << cost << endl;
+return 0;
+}
+
+
+
+
+
+
+
+Minimum Cost Spanning Tree (Kruskal’s)
+
+#include<bits/stdc++.h>
+using namespace std;
+class Graph{
+int V;
+vector<vector<int> >edges;
+int mstCost;
+public:
+Graph(int V) {
+this->V = V;
+this->mstCost = 0;
+}
+int getMstCost() {
+return mstCost;
+}
+void addEdge(int source, int destination, int weight) {
+edges.push_back({weight,source,destination});
+}
+
+void displayEdges() {
+for (auto edge:edges) {
+cout << "Source: " << edge[0] << " ";
+cout << "destination: " << edge[1] << " ";
+cout << "weight: " << edge[2] << endl;
+}
+}
+int findSet(int e, int* parent) {
+if (parent[e] == -1)
+return e;
+return findSet(parent[e], parent);
+}
+void unionSet(int x, int y, int* parent) {
+int s1 = findSet(x,parent);
+int s2 = findSet(y,parent);
+if (s1!=s2)
+parent[s2] = s1;
+}
+void kruskal() {
+int *parent = new int[V];
+for (int i=0; i<V; i++) parent[i] = -1;
+sort(edges.begin(), edges.end());
+for (auto edge:edges) {
+int w = edge[0];
+int u = edge[1];
+int v = edge[2];
+int s1 = findSet(u, parent);
+int s2 = findSet(v, parent);
+if (s1 == s2)
+continue;
+else {
+cout << u << " -> " << v << ": " << w << endl;
+mstCost+=w;
+unionSet(s1,s2,parent);
+}
+}
+delete [] parent;
+}
+};
+int main() {
+Graph g(4);
+g.addEdge(0,1,2);
+
+g.addEdge(1,2,3);
+g.addEdge(2,3,4);
+g.addEdge(3,0,1);
+g.displayEdges();
+g.kruskal();
+cout << "Minimum cost: " << g.getMstCost() << endl;
+return 0;
+}
+
+
+
+
+
+
+
+Single-Source Shortest Path (Dijkstra’s)
+
+#include<bits/stdc++.h>
+using namespace std;
+class Graph{
+int V;
+list<pair<int,int> > *l;
+public:
+Graph(int v){
+V = v;
+l = new list<pair<int,int> >[V];
+}
+void addEdge(int u,int v,int wt,bool undir = true){
+l[u].push_back({wt,v});
+if(undir){
+l[v].push_back({wt,u});
+}
+}
+int dijkstra(int src,int dest){
+//Data Structures
+vector<int> dist(V,INT_MAX);
+set<pair<int,int> > s;
+
+//1. Init
+dist[src] = 0;
+s.insert({0,src});
+while(!s.empty()){
+auto it = s.begin();
+int node = it->second;
+int distTillNow = it->first;
+s.erase(it); //Pop
+//Iterate over the nbrs of node
+for(auto nbrPair : l[node]){
+//......
+int nbr = nbrPair.second;
+int currentEdge = nbrPair.first;
+if(distTillNow + currentEdge < dist[nbr]){
+//remove if nbr already exist in the set
+auto f = s.find({dist[nbr],nbr});
+if(f!=s.end()){
+s.erase(f);
+}
+//insert the updated value with the new dist
+dist[nbr] = distTillNow + currentEdge;
+s.insert({dist[nbr],nbr});
+}
+}
+}
+//Single Source Shortest Dist to all other nodes
+for(int i=0;i<V;i++){
+cout<<"Node i "<<i <<" Dist "<<dist[i] <<endl;
+}
+return dist[dest];
+}
+};
+
+int main(){
+Graph g(5);
+g.addEdge(0,1,1);
+g.addEdge(1,2,1);
+g.addEdge(0,2,4);
+g.addEdge(0,3,7);
+g.addEdge(3,2,2);
+g.addEdge(3,4,3);
+cout << g.dijkstra(0,4)<<endl;
+}
+
+
+
+
+
+
+
+Single-Source Shortest Path (DP) (Bellman-Ford)
+
+#include<iostream>
+#include<vector>
+using namespace std;
+vector<int> bellman_ford(int V,int src,vector<vector<int> > edges){
+//create a vector
+vector<int> dist(V+1,INT_MAX);
+dist[src] = 0;
+//relax all edges v-1 times
+for(int i=0;i<V-1;i++){
+for(auto edge : edges){
+int u = edge[0];
+int v = edge[1];
+int wt = edge[2];
+if(dist[u]!=INT_MAX and dist[u] + wt < dist[v]){
+dist[v] = dist[u] + wt;
+}
+}
+}
+// negative wt cycle
+for(auto edge : edges){
+int u = edge[0];
+int v = edge[1];
+int wt = edge[2];
+
+if(dist[u]!=INT_MAX and dist[u] + wt < dist[v]){
+cout<<"negative Wt cycle found";
+exit(0);
+}
+}
+return dist;
+}
+
+int main(){
+
+int n,m;
+cin>>n>>m;
+
+//edge list
+vector<vector<int> > edges; // (a,b,3) (c,d,5) ....
+for(int i=0;i<m;i++){
+int u,v,wt;
+cin>>u>>v>>wt;
+edges.push_back({u,v,wt});
+}
+//bellman algorithm
+vector<int> distances = bellman_ford(n,1,edges);
+for(int i=1;i<=n;i++){
+cout<<"Node "<<i<<" is at dist "<<distances[i]<<endl;
+}
+return 0;
+}
+
+
+
+
+
+
+All-Pair Shortest Path (DP) (Floyd-Warshall)
+
+#include<iostream>
+#include<vector>
+using namespace std;
+#define INF 10000
+vector<vector<int> > floyd_warshall(vector<vector<int> > graph){
+vector<vector<int> > dist(graph);
+int V = graph.size();
+//Phases, in kth phase we included vertices (1,2,...k) as intermediate vertices
+for(int k=0;k<V;k++){
+//Iterate over entire 2D Matrix
+for(int i=0;i<V;i++){
+for(int j=0;j<V;j++){
+//if vertex k is included, and can we minimise the dist ?
+if(dist[i][j] > dist[i][k] + dist[k][j]){
+dist[i][j] = dist[i][k] + dist[k][j];
+}
+}
+}
+}
+return dist;
+}
+
+int main(){
+
+// 4 Vertices (4 X 4 Matrix)
+vector<vector<int> > graph = {
+
+{0,INF,-2,INF},
+{4,0,3,INF},
+{INF,INF,0,2},
+{INF,-1,INF,0}
+};
+
+auto result = floyd_warshall(graph);
+for(int i=0;i<result.size();i++){
+for(int j=0;j<result.size();j++){
+cout<<result[i][j]<<" ";
+}
+cout<<endl;
+}
+return 0;
+}
+
+
+
+
+
+
+
+
+0/1 Knapsack (DP)
+
+#include <bits/stdc++.h>
+using namespace std;
+int max(int x, int y) {
+return (x > y) ? x : y;
+}
+int knapSack(int W, int w[], int v[], int n) {
+int i, wt;
+int K[n + 1][W + 1];
+for (i = 0; i <= n; i++) {
+for (wt = 0; wt <= W; wt++) {
+if (i == 0 || wt == 0)
+K[i][wt] = 0;
+else if (w[i - 1] <= wt)
+K[i][wt] = max(v[i - 1] + K[i - 1][wt - w[i - 1]], K[i - 1][wt]);
+else
+K[i][wt] = K[i - 1][wt];
+}
+}
+return K[n][W];
+}
+int main() {
+cout << "Enter the number of items in a Knapsack:";
+int n, W;
+cin >> n;
+int v[n], w[n];
+for (int i = 0; i < n; i++) {
+cout << "Enter value and weight for item " << i << ":";
+cin >> v[i];
+cin >> w[i];
+
+}
+cout << "Enter the capacity of knapsack";
+cin >> W;
+cout << knapSack(W, w, v, n);
+return 0;
+}
